@@ -1,0 +1,8 @@
+{
+  "python_version": "3.12",
+  "graphs": {
+    "agent": "./llm/agent.py:graph"
+  },
+  "dependencies": ["llm"],
+  "env": ".env"
+}
