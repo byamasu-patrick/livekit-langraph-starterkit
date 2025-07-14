@@ -4,14 +4,14 @@ import logging
 from fastapi import APIRouter, HTTPException
 from livekit import api
 from uuid import uuid4
-
 from app.schemas.agent import JoinTokenRequest
+from app.core.config import settings
 
 logger = logging.getLogger("webrtc-voice-agent")
 
 router = APIRouter()
 
-@router.post("/token")
+@router.post("/generate-token")
 async def get_join_token(request: JoinTokenRequest):
     """Generate a token for joining a LiveKit room."""
     try:
@@ -35,6 +35,7 @@ async def get_join_token(request: JoinTokenRequest):
         logger.info(f"Generated token for participant {participant_name} in room {request.room_name}")
         return {
             "token": jwt_token,
+            "url": settings.livekit_url,
             "participant_name": participant_name,
             "room_name": request.room_name
         }

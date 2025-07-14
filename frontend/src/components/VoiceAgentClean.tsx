@@ -60,7 +60,7 @@ const VoiceAgent: React.FC = () => {
   const createAndJoinRoom = async () => {
     try {
       // Create room
-      const createResponse = await fetch(`${apiBaseUrl}/api/v1/rooms/create`, {
+      const createResponse = await fetch(`${apiBaseUrl}/api/v1/rooms/create-room`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ room_name: roomNameRef.current })
@@ -71,7 +71,7 @@ const VoiceAgent: React.FC = () => {
       }
 
       // Get token
-      const tokenResponse = await fetch(`${apiBaseUrl}/api/v1/tokens/generate`, {
+      const tokenResponse = await fetch(`${apiBaseUrl}/api/v1/tokens/generate-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ const VoiceAgent: React.FC = () => {
 
   const startAgent = async () => {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/v1/agents/start`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/agents/start-agent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ room_name: roomNameRef.current })

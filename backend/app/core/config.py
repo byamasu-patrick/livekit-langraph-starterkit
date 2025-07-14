@@ -1,7 +1,7 @@
 """Configuration and settings for the WebRTC Voice Agent API."""
 
 from typing import Optional, List
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
@@ -51,3 +51,10 @@ class Settings(BaseSettings):
 
 # Create global settings instance
 settings = Settings()
+
+# Debug: Check if LiveKit credentials are loaded
+print(f"LiveKit API Key: {settings.livekit_api_key[:10] if settings.livekit_api_key else 'NOT SET'}...")
+print(f"LiveKit API Secret: {settings.livekit_api_secret[:10] if settings.livekit_api_secret else 'NOT SET'}...")
+print(f"LiveKit URL: {settings.livekit_url}")
+print(f"ElevenLabs API Key: {settings.eleven_api_key[:10] if settings.eleven_api_key else 'NOT SET'}...")
+

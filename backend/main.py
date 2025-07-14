@@ -38,10 +38,6 @@ app.add_middleware(
 # Include API router with versioning
 app.include_router(api_router, prefix=settings.api_v1_str)
 
-# Add backward compatibility routes (without /api/v1 prefix)
-# This ensures existing frontend code continues to work
-app.include_router(api_router)
-
 
 if __name__ == "__main__":
     # Run the FastAPI server

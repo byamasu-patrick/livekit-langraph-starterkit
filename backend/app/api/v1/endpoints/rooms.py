@@ -11,7 +11,7 @@ logger = logging.getLogger("webrtc-voice-agent")
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "ok", "service": "WebRTC Voice Agent"}
@@ -46,7 +46,7 @@ async def create_room(request: CreateRoomRequest):
         logger.error(f"Error creating room: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create room: {str(e)}")
 
-@router.get("/rooms")
+@router.get("")
 async def list_rooms():
     """List all active LiveKit rooms."""
     try:

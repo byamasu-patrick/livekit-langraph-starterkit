@@ -75,7 +75,7 @@ const VoiceAgent = ()=>{
     const createAndJoinRoom = async ()=>{
         try {
             // Create room
-            const createResponse = await fetch(`${apiBaseUrl}/create-room`, {
+            const createResponse = await fetch(`${apiBaseUrl}/api/v1/rooms/create-room`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -88,7 +88,7 @@ const VoiceAgent = ()=>{
                 throw new Error('Failed to create room');
             }
             // Get token
-            const tokenResponse = await fetch(`${apiBaseUrl}/token`, {
+            const tokenResponse = await fetch(`${apiBaseUrl}/api/v1/tokens/generate-token`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -144,7 +144,7 @@ const VoiceAgent = ()=>{
     };
     const startAgent = async ()=>{
         try {
-            const response = await fetch(`${apiBaseUrl}/start-agent`, {
+            const response = await fetch(`${apiBaseUrl}/api/v1/agents/start-agent`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
