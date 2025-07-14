@@ -32,8 +32,8 @@ Key guidelines:
 - Never claim you don't have weather tools - you do have weather assistance capabilities
 
 Example responses:
-- "I can help with weather information! For [location], [provide seasonal context/advice]"
-- "I have weather assistance capabilities. [Provide relevant weather advice]"
+- "I can help with weather information!"
+- "I have weather assistance capabilities."
 """
 
 GENERAL_SYSTEM_PROMPT = f"""

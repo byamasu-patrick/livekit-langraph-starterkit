@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, createContext, useContext } from 'react';
 import { Room, RoomEvent, Track, RemoteTrack, createLocalAudioTrack } from 'livekit-client';
-import { Mic, MicOff } from 'lucide-react';
+import { Mic, MicOff, Sun, Moon } from 'lucide-react';
 
 interface RoomData {
   room_name: string;
@@ -11,7 +11,38 @@ interface RoomData {
   participant_name: string;
 }
 
+// Theme Context
+interface ThemeContextType {
+  isDark: boolean;
+  toggleTheme: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
+
+const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isDark, setIsDark] = useState(true);
+  
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+  };
+  
+  return (
+    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
 const VoiceAgent: React.FC = () => {
+  const { isDark, toggleTheme } = useTheme();
   const [room, setRoom] = useState<Room | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isMicEnabled, setIsMicEnabled] = useState(false);
@@ -243,30 +274,72 @@ const VoiceAgent: React.FC = () => {
     };
   }, [room]);
 
+  const themeStyles = {
+    dark: {
+      background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+      backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.5" fill="%23ffffff" opacity="0.03"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>')`,
+      textPrimary: 'text-white',
+      textSecondary: 'text-gray-400',
+      cardBg: 'bg-black/20 backdrop-blur-sm border-white/10',
+      footerText: 'text-white/40'
+    },
+    light: {
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)',
+      backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.5" fill="%23000000" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>')`,
+      textPrimary: 'text-gray-900',
+      textSecondary: 'text-gray-600',
+      cardBg: 'bg-white/80 backdrop-blur-sm border-gray-200/50',
+      footerText: 'text-gray-500'
+    }
+  };
+
+  const currentTheme = isDark ? themeStyles.dark : themeStyles.light;
+
   return (
     <div 
-      className="min-h-screen flex flex-col items-center justify-center p-8"
+      className={`min-h-screen flex flex-col items-center justify-center p-8 transition-all duration-700 ease-in-out ${currentTheme.textPrimary}`}
       style={{
-        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-        backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.5" fill="%23ffffff" opacity="0.03"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>')`,
+        background: currentTheme.background,
+        backgroundImage: currentTheme.backgroundImage,
       }}
     >
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className={`absolute top-6 right-6 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
+          isDark 
+            ? 'bg-white/10 hover:bg-white/20 text-yellow-400' 
+            : 'bg-gray-900/10 hover:bg-gray-900/20 text-gray-700'
+        } backdrop-blur-sm border ${
+          isDark ? 'border-white/20' : 'border-gray-200/50'
+        }`}
+      >
+        {isDark ? (
+          <Sun className="w-6 h-6 transition-transform duration-300 hover:rotate-12" />
+        ) : (
+          <Moon className="w-6 h-6 transition-transform duration-300 hover:-rotate-12" />
+        )}
+      </button>
+
       {/* Audio Level Visualization */}
-      <div className="flex space-x-4 mb-12">
+      <div className="flex space-x-3 mb-16">
         {audioLevels.map((level, index) => (
           <div
             key={index}
-            className={`w-16 h-32 rounded-full transition-all duration-150 ease-out ${
+            className={`w-4 h-32 rounded-full transition-all duration-200 ease-out transform ${
               isListening && isMicEnabled 
-                ? 'bg-gray-800 shadow-xs' 
-                : 'bg-white'
+                ? isDark ? 'bg-blue-400/80' : 'bg-blue-500/80'
+                : isDark ? 'bg-white/20' : 'bg-gray-400/30'
             }`}
             style={{
-              opacity: isListening && isMicEnabled ? 0.6 + (level * 0.4) : 0.2,
-              transform: `scaleY(${0.3 + (level * 0.7)})`,
+              opacity: isListening && isMicEnabled ? 0.7 + (level * 0.3) : 0.4,
+              transform: `scaleY(${0.2 + (level * 0.8)}) translateY(${(1 - level) * 10}px)`,
               boxShadow: isListening && isMicEnabled 
-                ? `0 0 20px rgba(75, 85, 99, ${0.3 + (level * 0.5)})` 
-                : 'none'
+                ? isDark 
+                  ? `0 0 25px rgba(59, 130, 246, ${0.4 + (level * 0.6)})` 
+                  : `0 0 25px rgba(37, 99, 235, ${0.3 + (level * 0.5)})`
+                : 'none',
+              animationDelay: `${index * 50}ms`
             }}
           />
         ))}
@@ -274,59 +347,95 @@ const VoiceAgent: React.FC = () => {
 
       {/* Agent Response Display */}
       {agentResponse && (
-        <div className="max-w-2xl mx-auto mb-8 p-6 bg-black/20 backdrop-blur-sm rounded-lg border border-white/10">
-          <p className="text-white text-center text-lg leading-relaxed">
+        <div className={`max-w-2xl mx-auto mb-12 p-8 rounded-2xl border transition-all duration-500 transform hover:scale-[1.02] ${currentTheme.cardBg}`}>
+          <p className={`${currentTheme.textPrimary} text-center text-lg leading-relaxed font-medium`}>
             {agentResponse}
           </p>
         </div>
       )}
 
       {/* Connection Status */}
-      <div className="mb-8">
-        <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-          connectionStatus === 'connected' ? 'bg-green-500/20 text-green-400' :
-          connectionStatus === 'connecting' ? 'bg-yellow-500/20 text-yellow-400' :
-          'bg-red-500/20 text-red-400'
+      <div className="mb-12">
+        <div className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${
+          connectionStatus === 'connected' 
+            ? 'bg-emerald-500/20 text-emerald-400 shadow-lg shadow-emerald-500/10' :
+          connectionStatus === 'connecting' 
+            ? 'bg-amber-500/20 text-amber-400 shadow-lg shadow-amber-500/10 animate-pulse' :
+          'bg-red-500/20 text-red-400 shadow-lg shadow-red-500/10'
         }`}>
-          {connectionStatus === 'connected' ? 'Connected to Alex' :
-           connectionStatus === 'connecting' ? 'Connecting...' :
-           'Disconnected'}
+          <div className="flex items-center space-x-2">
+            <div className={`w-2 h-2 rounded-full ${
+              connectionStatus === 'connected' ? 'bg-emerald-400' :
+              connectionStatus === 'connecting' ? 'bg-amber-400 animate-pulse' :
+              'bg-red-400'
+            }`}></div>
+            <span>
+              {connectionStatus === 'connected' ? 'Connected to Alex' :
+               connectionStatus === 'connecting' ? 'Connecting...' :
+               'Disconnected'}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Microphone Button */}
-      <button
-        onClick={handleVoiceButtonPress}
-        className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 ${
-          isMicEnabled 
-            ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/25' 
-            : 'bg-white hover:bg-gray-100 shadow-lg shadow-white/25'
-        } ${connectionStatus === 'connecting' ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
-      >
-        {isMicEnabled ? (
-          <MicOff className="w-8 h-8 text-white" />
-        ) : (
-          <Mic className="w-8 h-8 text-gray-800" />
+      <div className="relative">
+        <button
+          onClick={handleVoiceButtonPress}
+          className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform ${
+            isMicEnabled 
+              ? 'bg-red-500 hover:bg-red-600 shadow-2xl shadow-red-500/30 scale-110' 
+              : isDark
+                ? 'bg-white hover:bg-gray-100 shadow-2xl shadow-white/20'
+                : 'bg-gray-900 hover:bg-gray-800 shadow-2xl shadow-gray-900/30'
+          } ${connectionStatus === 'connecting' ? 'opacity-50 cursor-not-allowed' : 'hover:scale-125 active:scale-105'}`}
+          disabled={connectionStatus === 'connecting'}
+        >
+          {isMicEnabled ? (
+            <MicOff className="w-10 h-10 text-white transition-transform duration-200" />
+          ) : (
+            <Mic className={`w-10 h-10 transition-transform duration-200 ${
+              isDark ? 'text-gray-800' : 'text-white'
+            }`} />
+          )}
+        </button>
+        
+        {/* Pulse animation when listening */}
+        {isListening && isMicEnabled && (
+          <div className="absolute inset-0 rounded-full bg-red-500/30 animate-ping"></div>
         )}
-      </button>
+      </div>
 
       {/* Instructions */}
-      <div className="mt-8 text-center">
-        <p className="text-gray-600/60 text-sm">
-          {!isConnected ? 'Connecting to voice agent...' :
+      <div className="mt-12 text-center">
+        <p className={`${currentTheme.textSecondary} text-base font-medium transition-all duration-300`}>
+          {!isConnected ? (
+            <span className="animate-pulse">Connecting to voice agent...</span>
+          ) :
            !isMicEnabled ? 'Click the microphone to start talking' :
-           isListening ? 'Listening...' :
+           isListening ? (
+             <span className="text-blue-400 animate-pulse">Listening...</span>
+           ) :
            'Speak to Alex'}
         </p>
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-4 left-4 text-white/40 text-xs flex items-center space-x-2">
-        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-        <span>Hosted on LiveKit Cloud</span>
+      <div className={`absolute bottom-6 left-6 ${currentTheme.footerText} text-sm flex items-center space-x-3 transition-all duration-300`}>
+        <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+        <span className="font-medium">Hosted on LiveKit Cloud</span>
       </div>
     </div>
   );
 };
 
-export default VoiceAgent;
+// Main component wrapper with theme provider
+const VoiceAgentWithTheme: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <VoiceAgent />
+    </ThemeProvider>
+  );
+};
+
+export default VoiceAgentWithTheme;
